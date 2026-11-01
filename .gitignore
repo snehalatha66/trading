@@ -1,0 +1,17 @@
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+*.pyc
+
+# Node
+**/node_modules/
+**/dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
