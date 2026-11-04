@@ -4,8 +4,6 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   BarChart2,
-  Search,
-  LineChart,
   ListChecks,
   ClipboardList,
   Wallet,
@@ -14,77 +12,74 @@ import {
   FileText,
   Activity,
   Users,
-  Cpu,
   AlertCircle,
   Settings,
-  HelpCircle,
+  X,
 } from "lucide-react";
 
-const sections = [
+// Navigation groups as per design spec
+const groups = [
   {
-    label: "Overview",
+    label: "MAIN",
     items: [
       { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
       { to: "/markets", icon: BarChart2, label: "Markets" },
-    ],
-  },
-  {
-    label: "Stock Discovery",
-    items: [
-      { to: "/explorer", icon: Search, label: "Stock Explorer" },
-      { to: "/analysis", icon: LineChart, label: "Stock Analysis" },
       { to: "/screener", icon: ListChecks, label: "Stock Screener" },
-      { to: "/watchlist", icon: ClipboardList, label: "Watchlist" },
+      { to: "/watchlist", icon: ClipboardList, label: "My Watchlist" },
+      { to: "/fundamentals", icon: FileText, label: "Company Fundamentals" },
     ],
   },
   {
-    label: "Trading",
+    label: "MY TRADING",
     items: [
-      { to: "/portfolio", icon: Wallet, label: "My Portfolio" },
+      { to: "/portfolio", icon: Wallet, label: "Portfolio" },
       { to: "/paper-trading", icon: TrendingUp, label: "Paper Trading" },
-      { to: "/orders", icon: CalendarCheck, label: "Orders & Trades" },
-      { to: "/transactions", icon: FileText, label: "Transaction History" },
+      { to: "/alerts", icon: AlertCircle, label: "Price Alerts" },
+      { to: "/transactions", icon: CalendarCheck, label: "Transaction History" },
     ],
   },
   {
-    label: "AI & Research",
+    label: "INTELLIGENCE",
     items: [
+      { to: "/ai-insights", icon: Users, label: "AI Insights" },
       { to: "/news", icon: Activity, label: "Market News" },
-      { to: "/assistant", icon: Users, label: "AI Market Assistant" },
-      { to: "/strategy-lab", icon: Cpu, label: "Strategy Lab" },
-      { to: "/backtesting", icon: ClipboardList, label: "Backtesting" },
     ],
   },
   {
-    label: "Personal",
+    label: "SYSTEM",
     items: [
-      { to: "/alerts", icon: AlertCircle, label: "Alerts" },
       { to: "/settings", icon: Settings, label: "Settings" },
-      { to: "/help", icon: HelpCircle, label: "Help & Support" },
     ],
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onNavigate = () => {} }) {
   return (
-    <aside className="bg-gray-950 text-gray-100 w-64 flex-shrink-0 hidden lg:block h-screen overflow-y-auto">
-      <div className="p-4 flex items-center space-x-2">
-        <span className="text-2xl font-bold text-emerald-400">🧠</span>
-        <span className="text-xl font-semibold">MarketMind AI</span>
+    <aside className={`${mobileOpen ? "block fixed inset-y-0 left-0 z-40" : "hidden"} bg-bg-sidebar text-text-main w-64 flex-shrink-0 h-screen overflow-y-auto lg:static lg:block`}>
+      <div className="p-4 flex items-center justify-between space-x-2">
+        <div className="flex items-center space-x-2">
+          <span className="text-2xl font-bold text-primary-emerald">🧠</span>
+          <span className="text-xl font-semibold">MarketMind AI</span>
+        </div>
+        <button type="button" onClick={onNavigate} aria-label="Close navigation"
+          className="rounded p-2 text-text-secondary hover:bg-bg-surface lg:hidden">
+          <X className="h-5 w-5" />
+        </button>
       </div>
       <nav className="mt-6">
-        {sections.map((sec) => (
-          <div key={sec.label} className="mb-4">
-            <p className="px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {sec.label}
+        {groups.map((group) => (
+          <div key={group.label} className="mb-4">
+            <p className="px-4 text-xs font-medium text-secondary-gold uppercase tracking-wider">
+              {group.label}
             </p>
-            {sec.items.map((item) => (
+            {group.items.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
+                onClick={onNavigate}
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-2 mt-1 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors ${
-                    isActive ? "bg-gray-800 text-emerald-400" : "text-gray-300"
+                  `flex items-center px-4 py-2 mt-1 rounded-md text-sm font-medium transition-colors hover:bg-bg-surface ${
+                    isActive ? "bg-bg-surface text-primary-emerald" : "text-text-secondary"
                   }`
                 }
               >

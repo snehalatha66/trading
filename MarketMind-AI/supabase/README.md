@@ -53,6 +53,8 @@ Public read permissions are granted for reference tables (`stocks`, `market_snap
    ```
 5. The frontend should only use the **anon key** (see `.env` in the frontend folder) – the service‑role key is for backend privileged operations only.
 
+For an existing project, apply `migrations/20261104094900_profiles_access.sql` to grant the authenticated role access to its own profile rows. The migration only changes table privileges and the RLS policy; it does not recreate or alter `profiles`.
+
 ---
 
 ## Version Control

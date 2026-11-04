@@ -3,6 +3,8 @@ uvicorn[standard]
 python-dotenv
 supabase
 pydantic
+pydantic-settings
+email-validator
 pandas
 numpy
 ta

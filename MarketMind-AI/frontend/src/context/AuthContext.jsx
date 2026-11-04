@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
+import { invalidateRequestCache } from "../utils/api";
 
 const AuthContext = createContext({ session: null, loading: true });
 
@@ -14,6 +15,7 @@ export function AuthProvider({ children }) {
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (active) {
         setSession(nextSession);
+        if (!nextSession) invalidateRequestCache();
       }
     });
 
@@ -42,8 +44,14 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  async function signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    invalidateRequestCache();
+  }
+
   return (
-    <AuthContext.Provider value={{ session, loading }}>
+    <AuthContext.Provider value={{ session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

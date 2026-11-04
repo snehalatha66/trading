@@ -9,8 +9,8 @@ All routes return JSON payloads suitable for the existing frontend.
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr, Field
-from ..supabase_client import supabase
-from ..dependencies import get_current_user
+from ..supabase_client import create_user_client, supabase
+from ..dependencies import get_current_user, get_token_from_header
 
 router = APIRouter()
 
@@ -37,17 +37,20 @@ async def register(payload: RegisterRequest):
     if res.user is None:
         raise HTTPException(status_code=400, detail="Registration failed")
 
-    # Insert profile (auth_uid = user.id)
+    if not res.session:
+        raise HTTPException(status_code=400, detail="No session returned – check Supabase email confirmation settings")
+
     profile_data = {
         "auth_uid": res.user.id,
         "email": payload.email,
         "full_name": payload.full_name,
     }
-    supabase.table("profiles").insert(profile_data).execute()
+    user_client = create_user_client(res.session.access_token)
+    user_client.table("profiles").upsert(
+        profile_data,
+        on_conflict="auth_uid",
+    ).execute()
 
-    # The sign_up call also returns a session with access_token if email verification is disabled
-    if not res.session:
-        raise HTTPException(status_code=400, detail="No session returned – check Supabase email confirmation settings")
     return TokenResponse(access_token=res.session.access_token)
 
 @router.post("/login", response_model=TokenResponse)
@@ -61,15 +64,20 @@ async def login(payload: LoginRequest):
     return TokenResponse(access_token=res.session.access_token)
 
 @router.post("/logout")
-async def logout(current_user: dict = Depends(get_current_user)):
-    # Supabase does not provide a direct revoke endpoint for service‑role; we simply delete the session.
-    supabase.auth.api.sign_out(current_user["id"])
+async def logout(
+    current_user: dict = Depends(get_current_user),
+    token: str = Depends(get_token_from_header),
+):
+    try:
+        supabase.auth.admin.sign_out(token)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=400, detail="Could not revoke the session") from exc
     return {"detail": "Logged out"}
 
 @router.post("/reset-password")
 async def reset_password(email: EmailStr):
     try:
-        supabase.auth.api.reset_password_for_email(email)
+        supabase.auth.reset_password_for_email(str(email))
     except Exception as exc:  # pragma: no cover
         raise HTTPException(status_code=400, detail=str(exc))
     return {"detail": "Password reset email sent if user exists"}

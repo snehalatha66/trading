@@ -8,7 +8,7 @@ export async function ensureUserProfile(user) {
   const { data: profile, error: lookupError } = await supabase
     .from("profiles")
     .select("id")
-    .eq("email", user.email)
+    .eq("auth_uid", user.id)
     .maybeSingle();
 
   if (lookupError) {
@@ -20,6 +20,7 @@ export async function ensureUserProfile(user) {
   }
 
   const { error: insertError } = await supabase.from("profiles").insert({
+    auth_uid: user.id,
     email: user.email,
     full_name: user.user_metadata?.full_name ?? null,
   });
